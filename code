@@ -1,0 +1,79 @@
+import { addPayment, getData, getMonthData } from 'backend/bills';
+
+let data
+let times
+let chartData = [0,0,0,0,0,0,0,0,0,0,0,0]
+
+
+$w.onReady(async function () {
+	times = $w("#times").value
+	data = await getData(times)
+	console.log("data", data);
+	for (let i = 0; i < data.length; i++) {
+		if (data[i].price > 0){
+		chartData[Number(data[i].month)-1] += data[i].price
+		}
+	}
+	console.log("chartData",chartData);
+	$w("#html1").postMessage(chartData);
+	fillDistribution()
+});
+
+
+export async function newExpense_wixFormSubmitted() {
+	let year = $w("#date").value.getFullYear()
+	let month = $w("#date").value.getMonth()+1
+	let day = $w("#date").value.getDate()
+	let toInsert = 
+	{
+		"price" : Number($w("#amount").value),
+		"card" : $w("#card").checked,
+		"date" : $w("#date").value,
+		"business" : $w("#business").value,
+		"notes" : String($w("#notes").value),
+		"year" : String(year),
+		"month" : String(month),
+		"day" : String(day)
+	}
+	let status = await addPayment(toInsert)
+	if (status)
+	{
+		$w("#msg").expand()
+		setTimeout(() => {
+		$w("#msg").collapse()	
+		}, 3000);
+	}
+	else $w("#msg").text = "Not inserted correctlly"
+}
+
+//----Distribution fuctions----
+
+function fillDistribution() {
+	let cardCount = 0
+	let cashCount = 0
+	let total = 0
+	for (let i=0; i<data.length; i++)
+	{
+		if (data[i].card) cardCount += data[i].price
+		else cashCount += data[i].price
+	}
+	total += (cardCount+cashCount)
+
+	$w("#cardAmount").text = String(cardCount) + '₪'
+	$w("#cashAmount").text = String(cashCount) + '₪'
+	$w("#total").text = String(total) + '₪'
+}
+
+
+export async function times_change(event) {
+	console.log($w("#times").value);
+	times = $w("#times").value
+	data = await getData(times)
+	fillDistribution()
+}
+
+
+
+
+
+
