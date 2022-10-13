@@ -1,0 +1,47 @@
+//import { multiply } from 'backend/multiplication';
+import wixData from 'wix-data';
+
+let options = {
+  "suppressAuth": true,
+  "suppressHooks": true
+};
+
+export function addPayment(obj) {
+    return wixData.insert('bills', obj, options).then((ans)=>{
+      return ans
+    })
+}
+
+export function getData(time) {
+  let date = new Date()
+  let month = String(date.getMonth()+1)
+  let day = String(date.getDate())
+  let year = String(date.getFullYear())
+  if (time==='month'){
+    return wixData.query('bills').eq("year", year).eq("month", month).find(options).then((ans)=>{
+      return ans.items
+    })
+  }
+  else if (time==='year'){
+    return wixData.query('bills').eq("year", year).find(options).then((ans)=>{
+      return ans.items
+    })
+  }
+  else{
+    return wixData.query('bills').eq("year", year).eq("month", month).eq("day", day).find(options).then((ans)=>{
+      return ans.items
+    })
+  }
+}
+
+export function getMonthData(month) {
+  return wixData.query('bills').eq("month", month).find(options).then((ans)=>{
+    return ans.items
+  })
+}
+
+export function getDayData(month) {
+  return wixData.query('bills').eq("day", month).find(options).then((ans)=>{
+    return ans.items
+  })
+}
